@@ -47,8 +47,8 @@ namespace LINQLab
 
             //// <><> D Actions (Delete) <><>
             //DDemoOne();
-            //DProblemOne();
-            //DProblemTwo();
+            DProblemOne();
+            DProblemTwo();
         }
 
         // <><><><><><><><> R Actions (Read) <><><><><><><><><>
@@ -68,6 +68,8 @@ namespace LINQLab
         private void RProblemOne()
         {
             // Print the COUNT of all the users from the User table.
+            var users = _context.Users.Count();
+            Console.WriteLine($"User count = {users}");
 
         }
 
@@ -91,6 +93,12 @@ namespace LINQLab
         {
             // Write a LINQ query that gets each product whose price is less than or equal to $100.
             // Print the name and price of all products
+            var productsLessOrEqual100 = _context.Products.Where(p => p.Price <= 100).ToList();
+            Console.WriteLine("Products Less than $100");
+            foreach (var product in productsLessOrEqual100)
+            {
+                Console.WriteLine($"{product.Name} - {product.Price}");
+            }
 
         }
 
@@ -110,6 +118,12 @@ namespace LINQLab
         public void RProblemThree()
         {
             // Write a LINQ query that gets each product whose name that CONTAINS an "s".
+            var productContainsS = _context.Products.Where(p => p.Name.Contains("s"));
+            foreach (var product in productContainsS)
+            {
+                Console.WriteLine(product.Name);
+            }
+        
         }
         /*
             Expected Result:
@@ -130,6 +144,11 @@ namespace LINQLab
             // Write a LINQ query that gets all the users who registered BEFORE 2016.
             // Then print each user's email and registration date to the console.
 
+            var usersRegBefore2016 = _context.Users.Where(u => u.RegistrationDate < new DateTime(2016, 01, 01));
+            foreach (var user in usersRegBefore2016)
+            {
+                Console.WriteLine($"{user.Email} {user.RegistrationDate}" );
+            }
         }
         /*
             Expected Result:
@@ -144,6 +163,14 @@ namespace LINQLab
         {
             // Write a LINQ query that gets all of the users who registered AFTER 2016 and BEFORE 2018.
             // Then print each user's email and registration date to the console.
+            var usersRegAfter2016Before2018 = _context.Users.Where(u => u.RegistrationDate > new DateTime(2016, 01, 01))
+                                                            .Where(u => u.RegistrationDate < new DateTime(2018, 01, 01));
+
+            foreach (var user in usersRegAfter2016Before2018)
+            {
+                Console.WriteLine($"{user.Email} {user.RegistrationDate}");
+            }
+            
 
         }
         /*
@@ -170,7 +197,11 @@ namespace LINQLab
             // Write a LINQ query that retrieves all of the products in the shopping cart of the user who has the email "afton@gmail.com".
             // Then print the product's name, price, and quantity to the console.
 
-
+            var productsInCartUser = _context.ShoppingCartItems.Include(ur => ur.Product).Include(ur => ur.User).Where(ur => ur.User.Email == "afton@gmail.com");
+            foreach (var product in productsInCartUser)
+            {
+                Console.WriteLine($"Name -{product.Product.Name} \n Price -{product.Product.Price} \n Quantity {product.Quantity}- ");
+            }
         }
         /*
             Expected Result:
@@ -198,6 +229,12 @@ namespace LINQLab
             // Print the total of the shopping cart to the console.
             // Remember to break the problem down and take it one step at a time!
 
+            var productsInCartUser = _context.ShoppingCartItems.Include(ur => ur.Product).Include(ur => ur.User).Where(ur => ur.User.Email == "oda@gmail.com").Select(sc => sc.Product.Price).Sum();
+
+           
+          
+                Console.WriteLine($"${productsInCartUser}");
+            
 
         }
         /*
@@ -208,7 +245,21 @@ namespace LINQLab
         {
             // Write a query that retrieves all of the products in the shopping cart of users who have the role of "Employee".
             // Then print the product's name, price, and quantity to the console along with the email of the user that has it in their cart.
+            var productsInCartRoleEmployee = _context.ShoppingCartItems.Include(sp => sp.User)
+                                                                       .Include(sp => sp.Product)
+                                                                       .Where(sp => _context.UserRoles.Any(ur => ur.User.Id == sp.User.Id && ur.Role.RoleName == "Employee"));
 
+            //var shoppingCartItems = _context.ShoppingCartItems.Include(sc => sc.User).Include(sc => sc.Product);
+            //var subqueryReplacment = shoppingCartItems.Where(sc => _context.UserRoles.Any(ur => ur.User.Id == sc.User.Id && ur.Role.RoleName == "Employee"));
+
+            foreach (var product in productsInCartRoleEmployee)
+            {
+                Console.WriteLine($"Email - {product.User.Email} \n Product name {product.Product.Name} \n Price - {product.Product.Price}" +
+                $"\n Quantity - {product.Quantity}");
+            }
+                
+            
+            
         }
         /*
             Expected Result
@@ -257,7 +308,13 @@ namespace LINQLab
         private void CProblemOne()
         {
             // Create a new Product object and add that product to the Products table. Choose any name and product info you like.
-
+            Product newProduct = new Product()
+            {
+                Name = "Xbox Series 5",
+                Price = 499
+            };
+            _context.Products.Add(newProduct);
+            _context.SaveChanges();
 
         }
 
@@ -280,8 +337,16 @@ namespace LINQLab
         {
             // Create a new ShoppingCartItem to represent the new product you created in CProblemOne being added to the shopping cart of the user created in CDemoOne.
             // This will add a new row to ShoppingCart junction table.
+            var userId = _context.Users.Where(u => u.Email == "david@gmail.com").Select(u => u.Id).SingleOrDefault();
+            var productId = _context.Products.Where(p => p.Name == "Xbox Series 5").Where(p => p.Price == 499).Select(p => p.Id).SingleOrDefault();
+            ShoppingCartItem newShoppingCartItem = new ShoppingCartItem()
+            {
+                UserId = userId,
+                ProductId = productId
+            };
 
-
+            _context.ShoppingCartItems.Add(newShoppingCartItem);
+            _context.SaveChanges();
         }
 
 
@@ -300,7 +365,10 @@ namespace LINQLab
         private void UProblemOne()
         {
             // Update the price of the product you created in CProblemOne to something different using LINQ.
-
+            var productPrice = _context.Products.Where(p => p.Price == 499).FirstOrDefault();
+            productPrice.Price = 429;
+            _context.Products.Update(productPrice);
+            _context.SaveChanges();
 
         }
 
@@ -309,7 +377,20 @@ namespace LINQLab
             // Change the role of the user we created to "Employee"
             // HINT: You need to delete the existing role relationship and then create a new Userrole object and add it to the Userroles table
             // See the DDemoOne below as an example of removing a role relationship
+            var userDeletedRole = _context.UserRoles.Where(ur => ur.User.Email == "dan@gmail.com").FirstOrDefault();
+            _context.UserRoles.Remove(userDeletedRole);
 
+            var updatedRole = _context.Roles.Where(r => r.RoleName == "Employee").FirstOrDefault();
+
+            var roleId = _context.Roles.Where(r => r.RoleName == "Employee").Select(r => r.Id).SingleOrDefault();
+            var userId = _context.Users.Where(u => u.Email == "dan@gmail.com").Select(u => u.Id).SingleOrDefault();
+            UserRole newUserrole = new UserRole()
+            {
+                UserId = userId,
+                RoleId = roleId
+            };
+            _context.UserRoles.Add(newUserrole);
+            _context.SaveChanges();
         }
 
         // <><> D Actions (Delete) <><>
@@ -329,12 +410,24 @@ namespace LINQLab
             // Delete all of the product relationships to the user with the email "oda@gmail.com" in the ShoppingCart table using LINQ.
             // HINT: Use a Loop
 
+            var userProductDeleted = _context.ShoppingCartItems.Where(sc => sc.User.Email == "oda@gmail.com").ToList();
+
+            
+            foreach (var product in userProductDeleted)
+            {
+                _context.ShoppingCartItems.Remove(product);
+            }
+            _context.SaveChanges();
+
         }
 
         private void DProblemTwo()
         {
             // Delete the user with the email "oda@gmail.com" from the Users table using LINQ.
+            var deletedUser = _context.Users.Where(u => u.Email == "oda.gmail.com").FirstOrDefault();
 
+            _context.Users.Remove(deletedUser);
+            _context.SaveChanges();
 
 
         }
@@ -348,6 +441,23 @@ namespace LINQLab
             // Print "Signed In!" to the console if they exists and the values match otherwise print "Invalid Email or Password.".
 
             Console.WriteLine("Enter Email: ");
+            var userEmail = Console.ReadLine();
+            Console.WriteLine("Enter Password:");
+            var userPassword = Console.ReadLine();
+
+            
+
+            //foreach (var email in User)
+            //{
+            //    if(userEmail == User.email) 
+            //    {
+            //        Console.WriteLine();
+            //    }
+            //    _context.Users.Add(newUser);
+            //    _context.SaveChanges();
+            //}
+
+            
 
         }
 

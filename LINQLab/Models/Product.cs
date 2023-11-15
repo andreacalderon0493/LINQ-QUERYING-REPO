@@ -15,3 +15,4 @@ public partial class Product
 
     public virtual ICollection<ShoppingCartItem> ShoppingCartItems { get; set; } = new List<ShoppingCartItem>();
 }
+
